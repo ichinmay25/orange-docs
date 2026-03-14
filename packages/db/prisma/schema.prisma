@@ -1,0 +1,167 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id              String           @id
+  email           String           @unique
+  name            String?
+  avatarUrl       String?
+  createdAt       DateTime         @default(now())
+  figmaConnection FigmaConnection?
+  designSystems   DesignSystem[]
+}
+
+model FigmaConnection {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken  String
+  refreshToken String
+  expiresAt    DateTime
+  figmaUserId  String
+  figmaEmail   String
+  figmaHandle  String?
+  updatedAt    DateTime @updatedAt
+}
+
+model DesignSystem {
+  id            String     @id @default(cuid())
+  userId        String
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  slug          String
+  description   String?
+  figmaFileKey  String
+  figmaFileName String?
+  mcpToken      String     @unique @default(cuid())
+  isPublished   Boolean    @default(false)
+  publishSlug   String?    @unique
+  syncStatus    SyncStatus @default(IDLE)
+  lastSyncAt    DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  components    Component[]
+  tokens        Token[]
+  categories    Category[]
+  syncs         FigmaSync[]
+
+  @@unique([userId, slug])
+}
+
+enum SyncStatus {
+  IDLE
+  SYNCING
+  DONE
+  ERROR
+}
+
+model FigmaSync {
+  id                 String       @id @default(cuid())
+  designSystemId     String
+  designSystem       DesignSystem @relation(fields: [designSystemId], references: [id], onDelete: Cascade)
+  status             SyncStatus   @default(SYNCING)
+  startedAt          DateTime     @default(now())
+  finishedAt         DateTime?
+  componentsFound    Int?
+  tokensFound        Int?
+  thumbnailsUploaded Int?
+  errorMessage       String?
+  figmaLastModified  String?
+}
+
+model Category {
+  id             String       @id @default(cuid())
+  designSystemId String
+  designSystem   DesignSystem @relation(fields: [designSystemId], references: [id], onDelete: Cascade)
+  name           String
+  slug           String
+  description    String?
+  sortOrder      Int          @default(0)
+  components     Component[]
+
+  @@unique([designSystemId, slug])
+}
+
+model Component {
+  id                   String       @id @default(cuid())
+  designSystemId       String
+  designSystem         DesignSystem @relation(fields: [designSystemId], references: [id], onDelete: Cascade)
+  categoryId           String?
+  category             Category?    @relation(fields: [categoryId], references: [id])
+  figmaNodeId          String
+  figmaNodeType        String
+  figmaPageName        String?
+  name                 String
+  slug                 String
+  figmaDescription     String?
+  variants             Json?
+  figmaProps           Json?
+  nodeTree             Json?
+  thumbnailUrl         String?
+  thumbnailStoragePath String?
+  docDescription       Json?
+  docUsageNotes        Json?
+  dos                  String[]
+  donts                String[]
+  customProps          Json?
+  isHidden             Boolean      @default(false)
+  sortOrder            Int          @default(0)
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  @@unique([designSystemId, figmaNodeId])
+  @@unique([designSystemId, slug])
+}
+
+model Token {
+  id                        String       @id @default(cuid())
+  designSystemId            String
+  designSystem              DesignSystem @relation(fields: [designSystemId], references: [id], onDelete: Cascade)
+  type                      TokenType
+  source                    TokenSource
+  name                      String
+  slug                      String
+  value                     String
+  rawValue                  Json?
+  hexValue                  String?
+  figmaId                   String?
+  figmaVariableCollectionId String?
+  group                     String?
+  description               String?
+  createdAt                 DateTime     @default(now())
+
+  @@unique([designSystemId, slug])
+}
+
+enum TokenType {
+  COLOR
+  TYPOGRAPHY
+  SPACING
+  RADIUS
+  SHADOW
+  OPACITY
+  OTHER
+}
+
+enum TokenSource {
+  FIGMA_VARIABLES
+  FIGMA_STYLES
+  INFERRED
+}
+
+model InviteCode {
+  id        String    @id @default(cuid())
+  code      String    @unique
+  note      String?
+  usedBy    String?
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  expiresAt DateTime?
+}
