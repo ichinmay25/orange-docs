@@ -32,7 +32,7 @@ export function Sidebar({ user }: SidebarProps) {
           <div className="w-7 h-7 bg-gray-900 rounded-lg flex items-center justify-center">
             <Layers className="w-4 h-4 text-white" />
           </div>
-          <span className="font-semibold text-gray-900">DesignBase</span>
+          <span className="font-semibold text-gray-900">Orange Docs</span>
         </div>
       </div>
 

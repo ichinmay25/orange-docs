@@ -10,9 +10,9 @@ export default function LoginPage({ searchParams }: Props) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
       <div className="mb-8 text-center">
-        <h1 className="text-2xl font-bold text-gray-900">DesignBase</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Orange Docs</h1>
         <p className="mt-2 text-sm text-gray-500">
-          DesignBase is currently invite-only.
+          Orange Docs is currently invite-only.
         </p>
       </div>
       {inviteRequired && (

@@ -5,7 +5,7 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'DesignBase',
+  title: 'Orange Docs',
   description: 'Design system management platform',
 };
 
