@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { waitUntil } from '@vercel/functions';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@designbase/db';
 import { runFigmaSync } from '@/lib/sync/orchestrator';
@@ -21,10 +22,10 @@ export async function POST(
     return NextResponse.json({ error: 'Sync already in progress' }, { status: 409 });
   }
 
-  // Fire and forget — return immediately, client polls GET /sync
-  runFigmaSync(systemId).catch(err => {
+  // Keep the function alive on Vercel until sync completes
+  waitUntil(runFigmaSync(systemId).catch(err => {
     console.error(`Sync failed for ${systemId}:`, err);
-  });
+  }));
 
   return NextResponse.json({ status: 'SYNCING' });
 }
