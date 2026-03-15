@@ -45,12 +45,6 @@ export class FigmaClient {
     );
   }
 
-  async getVariables(fileKey: string) {
-    return this.request<{ meta: { variables: Record<string, FigmaVariable>; variableCollections: Record<string, FigmaVariableCollection> } }>(
-      `/v1/files/${fileKey}/variables/local`
-    );
-  }
-
   async getStyles(fileKey: string) {
     return this.request<{ meta: { styles: FigmaStyle[] } }>(
       `/v1/files/${fileKey}/styles`
@@ -190,22 +184,6 @@ export interface FigmaPropDefinition {
   type: 'BOOLEAN' | 'TEXT' | 'INSTANCE_SWAP' | 'VARIANT';
   defaultValue: unknown;
   variantOptions?: string[];
-}
-
-export interface FigmaVariable {
-  id: string;
-  name: string;
-  resolvedType: 'COLOR' | 'FLOAT' | 'STRING' | 'BOOLEAN';
-  valuesByMode: Record<string, unknown>;
-  variableCollectionId: string;
-  description?: string;
-}
-
-export interface FigmaVariableCollection {
-  id: string;
-  name: string;
-  modes: Array<{ modeId: string; name: string }>;
-  defaultModeId: string;
 }
 
 export interface FigmaStyle {

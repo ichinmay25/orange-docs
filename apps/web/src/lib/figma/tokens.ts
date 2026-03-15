@@ -2,7 +2,7 @@
  * Token extraction: Variables → Styles → Inferred (fallback chain).
  */
 
-import type { FigmaClient, FigmaVariable, FigmaNode } from './client';
+import type { FigmaClient, FigmaNode } from './client';
 import type { TokenType, TokenSource } from '@designbase/types';
 import { nameToSlug } from './extractor';
 
@@ -18,64 +18,6 @@ export interface ExtractedToken {
   figmaVariableCollectionId?: string;
   group?: string;
   description?: string;
-}
-
-// ── Variables ────────────────────────────────────────────────────────────────
-
-export async function extractTokensFromVariables(
-  client: FigmaClient,
-  fileKey: string
-): Promise<ExtractedToken[]> {
-  try {
-    const res = await client.getVariables(fileKey);
-    const { variables, variableCollections } = res.meta;
-
-    const tokens: ExtractedToken[] = [];
-
-    for (const variable of Object.values(variables)) {
-      const collection = variableCollections[variable.variableCollectionId];
-      const defaultModeId = collection?.defaultModeId;
-      const rawValue = defaultModeId ? variable.valuesByMode[defaultModeId] : undefined;
-
-      if (variable.resolvedType === 'COLOR' && rawValue && typeof rawValue === 'object') {
-        const c = rawValue as { r: number; g: number; b: number; a: number };
-        const hex = rgbaToHex(c.r, c.g, c.b, c.a);
-        const humanValue = `rgba(${Math.round(c.r * 255)}, ${Math.round(c.g * 255)}, ${Math.round(c.b * 255)}, ${c.a?.toFixed(2) ?? 1})`;
-
-        tokens.push({
-          type: 'COLOR',
-          source: 'FIGMA_VARIABLES',
-          name: variable.name,
-          slug: nameToSlug(variable.name),
-          value: humanValue,
-          rawValue: c,
-          hexValue: hex,
-          figmaId: variable.id,
-          figmaVariableCollectionId: variable.variableCollectionId,
-          group: collection?.name,
-          description: variable.description,
-        });
-      } else if (variable.resolvedType === 'FLOAT' && typeof rawValue === 'number') {
-        const type = inferNumericType(variable.name, rawValue);
-        tokens.push({
-          type,
-          source: 'FIGMA_VARIABLES',
-          name: variable.name,
-          slug: nameToSlug(variable.name),
-          value: `${rawValue}px`,
-          rawValue,
-          figmaId: variable.id,
-          figmaVariableCollectionId: variable.variableCollectionId,
-          group: collection?.name,
-          description: variable.description,
-        });
-      }
-    }
-
-    return tokens;
-  } catch {
-    return [];
-  }
 }
 
 // ── Styles ───────────────────────────────────────────────────────────────────

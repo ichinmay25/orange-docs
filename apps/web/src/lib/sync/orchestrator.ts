@@ -8,7 +8,6 @@ import { db, Prisma } from '@designbase/db';
 import { getFigmaClientForUser } from '@/lib/figma/client';
 import { extractComponents, nameToSlug } from '@/lib/figma/extractor';
 import {
-  extractTokensFromVariables,
   extractTokensFromStyles,
   extractTokensInferred,
 } from '@/lib/figma/tokens';
@@ -41,11 +40,8 @@ export async function runFigmaSync(designSystemId: string): Promise<void> {
       data: { figmaFileName: fileInfo.name },
     });
 
-    // Phase 1: Tokens
-    let tokens = await extractTokensFromVariables(client, system.figmaFileKey);
-    if (tokens.length === 0) {
-      tokens = await extractTokensFromStyles(client, system.figmaFileKey);
-    }
+    // Phase 1: Tokens (Styles → Inferred fallback)
+    let tokens = await extractTokensFromStyles(client, system.figmaFileKey);
 
     // Phase 2: Components
     const fullFile = await client.getFullFile(system.figmaFileKey);
