@@ -89,12 +89,13 @@ export async function getFigmaClientForUser(userId: string): Promise<FigmaClient
       client_id: process.env.FIGMA_CLIENT_ID!,
       client_secret: process.env.FIGMA_CLIENT_SECRET!,
       redirect_uri: process.env.FIGMA_REDIRECT_URI!,
-      code: refreshToken,
+      refresh_token: refreshToken,
       grant_type: 'refresh_token',
     });
 
     const res = await fetch(FIGMA_TOKEN_URL, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: params,
     });
 
