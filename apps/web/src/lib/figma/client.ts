@@ -115,8 +115,14 @@ export async function getFigmaClientForUser(userId: string): Promise<FigmaClient
         },
       });
 
-      const decryptedAccess = data.access_token;
-      return new FigmaClient(decryptedAccess);
+      return new FigmaClient(data.access_token);
+    } else {
+      const body = await res.text().catch(() => '');
+      console.error(`[figma] token refresh failed (${res.status}): ${body}`);
+      // If the token is already expired, don't attempt the API call with a dead token
+      if (expiresAt < now) {
+        throw new Error('Figma access token expired and refresh failed — please reconnect Figma in Settings');
+      }
     }
   }
 
